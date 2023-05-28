@@ -92,7 +92,7 @@ def train(train_data_generator):
 
             # goal loss
             change_require_grads(tom_net, goal_grad=True, action_grad=False)
-            stayed_batch = torch.zeros(goals_batch.shape)
+            stayed_batch = torch.zeros(goals_batch.shape).to(device)
             stayed_batch[goals_batch == params.GOAL_NUM] = 1
             reached_or_stayed_batch = torch.logical_or(goal_reached_batch, stayed_batch)
 
