@@ -123,12 +123,12 @@ def train(train_data_generator):
 
             n_batch += 1
             print('epoch: ', epoch, ', batch: ', train_idx)
-
-            writer.add_scalar("Loss/goal", epoch_goal_loss / n_batch, global_index)
-            writer.add_scalar("Loss/all_action", epoch_all_actions_loss / n_batch, global_index)
             global_index += 1
 
+        writer.add_scalar("Loss/goal", epoch_goal_loss / n_batch, epoch)
+        writer.add_scalar("Loss/all_action", epoch_all_actions_loss / n_batch, epoch)
         writer.add_scalar("Accuracy/action", epoch_action_prediction_performance / n_batch, epoch)
+
     writer.flush()
     if not os.path.exists('./Model'):
         os.mkdir('./Model')
