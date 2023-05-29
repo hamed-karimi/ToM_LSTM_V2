@@ -39,6 +39,8 @@ class EnvironmentNet(nn.Module):
             y = self.conv1(x[:, step, :, :, :]).squeeze()
             env_over_episode.append(F.relu(y))
         env_over_episode = torch.stack(env_over_episode, dim=1)
+        if env_over_episode.dim() < 3:
+            env_over_episode.unsqueeze(dim=0)
 
         if reinitialize:
             self.h_0 = torch.zeros((self.layers_num, batch_size, self.hidden_size),
