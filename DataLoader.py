@@ -10,7 +10,7 @@ def get_data_loader(utility):
                                      batch_size=batch_size,
                                      drop_last=False)
         params = {'batch_sampler': batch_sampler,
-                  'pin_memory': True}
+                  'pin_memory': False}
 
         generator = DataLoader(dataset, **params)
         return generator
