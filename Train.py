@@ -1,45 +1,23 @@
 import os.path
-
-import numpy as np
 import torch
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import SequentialSampler, BatchSampler, DataLoader, SubsetRandomSampler, Sampler
 import Utilities
-from DataSet import AgentActionDataSet, get_agent_appearance
 from ObjectFactory import ObjectFactory
 
 
-def get_data_loader(utility):
-    def get_generator_from_sampler(sampler: Sampler, batch_size):
-        batch_sampler = BatchSampler(sampler=sampler,
-                                     batch_size=batch_size,
-                                     drop_last=False)
-        params = {'batch_sampler': batch_sampler,
-                  'pin_memory': True}
-
-        generator = DataLoader(dataset, **params)
-        return generator
-
-    dataset = AgentActionDataSet()
-    train_batch_size = utility.params.BATCH_SIZE
-    train_sampler = SubsetRandomSampler(np.arange(int(utility.params.TRAIN_PROPORTION * len(dataset))))
-    test_sampler = SequentialSampler(np.arange(int(utility.params.TRAIN_PROPORTION * len(dataset)), len(dataset)))
-
-    train_generator = get_generator_from_sampler(train_sampler, batch_size=train_batch_size)
-    test_generator = get_generator_from_sampler(test_sampler, batch_size=1)
-
-    return train_generator, test_generator
-
-
-def change_require_grads(model, goal_grad, action_grad):
+def change_require_grads(model, goal_grad, action_grad, mental_grad=True, agent_grad=True):
     for params in model.goal_net.parameters():
         params.requires_grad = goal_grad
     for params in model.action_net.parameters():
         params.requires_grad = action_grad
+    for params in model.mental_net.parameters():
+        params.requires_grad = mental_grad
+    for params in model.agent_net.parameters():
+        params.requires_grad = agent_grad
 
 
-def train(train_data_generator):
+def train(train_data_generator, validation_data_generator):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     utility = Utilities.Utilities()
     params = utility.params
@@ -55,12 +33,14 @@ def train(train_data_generator):
         epoch_goal_loss = 0
         epoch_all_actions_loss = 0
         epoch_action_prediction_performance = 0
-        n_batch = 0
+        n_train_batch = 0
+        n_validation_batch = 0
         seq_start = True
         # goal_criterion = nn.NLLLoss(reduction='mean', weight=torch.tensor([4.5, 4.5, 1]).to(device))
         goal_criterion = nn.CrossEntropyLoss(reduction='mean', weight=torch.tensor([4.5, 4.5, 1]).to(device))
         action_criterion = nn.NLLLoss(reduction='mean')
         for train_idx, data in enumerate(train_data_generator):
+            continue
             # environment_batch.shape: [batch_size, step_num, objects+agent(s), height, width]
             # target_goal: 2 is staying
             environments_batch, \
@@ -68,27 +48,23 @@ def train(train_data_generator):
                 actions_batch, \
                 needs_batch, \
                 goal_reached_batch, \
-                targets_prob_batch, \
-                has_target_dist_batch = data
+                retrospective_goals_batch = data
 
-            environments_batch = environments_batch.to(device)
-            goals_batch = goals_batch.to(device)
-            actions_batch = actions_batch.to(device)
-            needs_batch = needs_batch.to(device)
-            goal_reached_batch = goal_reached_batch.to(device)
-            # targets_prob_batch = targets_prob_batch.to(device)
-            # has_target_dist_batch = has_target_dist_batch.to(device)
-            # agent_appearance_batch = agent_appearance.repeat(environments_batch.shape[0], 1, 1, 1)
+            change_require_grads(tom_net,
+                                 goal_grad=True,
+                                 action_grad=True,
+                                 mental_grad=True,
+                                 agent_grad=True)
 
-            change_require_grads(tom_net, goal_grad=True, action_grad=True)
             optimizer.zero_grad()
 
-            goals, goals_prob, actions, actions_prob = tom_net(environments_batch,
-                                                               reinitialize_mental=seq_start)
-
+            goals_prob, actions_prob, action_prob_of_true_goals = tom_net(environments_batch,
+                                                                          inject_true_goals=True,
+                                                                          goals=retrospective_goals_batch)
             # 2 losses:
             # 1. goal loss
-            # 2. action loss
+            # 2. all actions losses
+            # 3. retrospective goal losses
 
             # goal loss
             change_require_grads(tom_net, goal_grad=True, action_grad=False)
@@ -104,30 +80,61 @@ def train(train_data_generator):
             change_require_grads(tom_net, goal_grad=True, action_grad=True)
             action_loss = action_criterion(actions_prob.reshape(actions_prob.shape[0], 9, -1),
                                            actions_batch.long())
-            action_loss.backward()
+            action_loss.backward(retain_graph=True)
 
             # Inject true goals to the action net, and compute derivative
-            # change_require_grads(tom_net, goal_grad=False, action_grad=True)
+            # retrospective goal losses
+            change_require_grads(tom_net,
+                                 goal_grad=False,
+                                 action_grad=True,
+                                 mental_grad=False,
+                                 agent_grad=False)
 
-            # reached_or_stayed = goals_batch[torch.logical_or(goal_reached_batch, stayed_batch)]
-            # binary_goals = torch.zeros(reached_goals.shape[0], self.params.GOAL_NUM + 1)
-            # binary_goals.index_put_((torch.arange(reached_goals.shape[0]), reached_goals),
-            #                         torch.ones(reached_goals.shape[0]))
-            ###
+            action_true_goal_loss = action_criterion(
+                action_prob_of_true_goals.reshape(action_prob_of_true_goals.shape[0], 9, -1),
+                actions_batch.long())
+            action_true_goal_loss.backward()
+
             optimizer.step()
-            #
+
             epoch_all_actions_loss += action_loss.item()
             epoch_goal_loss += goal_loss.item()
-            epoch_action_prediction_performance += torch.eq(actions_batch, torch.argmax(actions_prob, dim=2)).sum().item() / \
-                                                   (actions_batch.shape[0]*actions_batch.shape[1])
+            # epoch_action_prediction_performance += torch.eq(actions_batch,
+            #                                                 torch.argmax(actions_prob, dim=2)).sum().item() / \
+            #                                        (actions_batch.shape[0] * actions_batch.shape[1])
 
-            n_batch += 1
+            n_train_batch += 1
             print('epoch: ', epoch, ', batch: ', train_idx)
             global_index += 1
 
-        writer.add_scalar("Loss/goal", epoch_goal_loss / n_batch, epoch)
-        writer.add_scalar("Loss/all_action", epoch_all_actions_loss / n_batch, epoch)
-        writer.add_scalar("Accuracy/action", epoch_action_prediction_performance / n_batch, epoch)
+        validation_goal_prediction_accuracy = 0
+        validation_action_prediction_accuracy = 0
+        for valid_idx, data in enumerate(validation_data_generator):
+            environments_batch, \
+                goals_batch, \
+                actions_batch, \
+                needs_batch, \
+                goal_reached_batch, \
+                retrospective_goals_batch = data
+
+            with torch.no_grad():
+                goals_prob, actions_prob, _ = tom_net(environments_batch,
+                                                      inject_true_goals=False,
+                                                      goals=None)
+                goals_pred = torch.argmax(goals_prob, dim=2)
+                action_pred = torch.argmax(actions_prob, dim=2)
+
+                validation_goal_prediction_accuracy += torch.eq(goals_batch, goals_pred).sum().item() / \
+                                                       (goals_batch.shape[0] * goals_batch.shape[1])
+
+                validation_action_prediction_accuracy += torch.eq(actions_batch, action_pred).sum().item() / \
+                                                         (actions_batch.shape[0] * actions_batch.shape[1])
+                n_validation_batch += 1
+
+        writer.add_scalar("Train Loss/goal", epoch_goal_loss / n_train_batch, epoch)
+        writer.add_scalar("Train Loss/all_action", epoch_all_actions_loss / n_train_batch, epoch)
+        writer.add_scalar("Validation Accuracy/goal", validation_goal_prediction_accuracy / n_validation_batch, epoch)
+        writer.add_scalar("Validation Accuracy/action", validation_action_prediction_accuracy / n_validation_batch, epoch)
 
     writer.flush()
     if not os.path.exists('./Model'):

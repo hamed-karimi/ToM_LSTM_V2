@@ -10,5 +10,7 @@ class AgentNet(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x).squeeze()
+        if x.dim() == 1:  # 1 batch
+            x = x.unsqueeze(dim=0)
         agent_repr = self.fc1(F.relu(x))
         return agent_repr

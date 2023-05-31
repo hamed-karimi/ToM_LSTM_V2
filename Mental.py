@@ -16,14 +16,14 @@ class MentalNet(nn.Module):
                             batch_first=True)
         self.hidden_size = mental_states_num
 
-    def forward(self, environment, agent, reinitialize):
+    def forward(self, environment, agent):
         # maybe we should save h_0 and c_0 for next predictions, as the sequence is basically infinite
         batch_size = environment.shape[0]
-        if reinitialize:
-            self.h_0 = torch.zeros((self.num_layers, batch_size, self.hidden_size),
-                                   requires_grad=True, device=self.device)
-            self.c_0 = torch.zeros((self.num_layers, batch_size, self.hidden_size),
-                                   requires_grad=True, device=self.device)
+
+        self.h_0 = torch.zeros((self.num_layers, batch_size, self.hidden_size),
+                               requires_grad=True, device=self.device)
+        self.c_0 = torch.zeros((self.num_layers, batch_size, self.hidden_size),
+                               requires_grad=True, device=self.device)
 
         environment_combined = torch.concat([environment, agent], dim=2)
         mental_states, (h_n, c_n) = self.lstm(environment_combined, (self.h_0, self.c_0))

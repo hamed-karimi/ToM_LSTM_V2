@@ -5,7 +5,6 @@ import torch
 import Utilities
 from torch.utils.tensorboard import SummaryWriter
 from Visualizer import visualizer
-from DataSet import get_agent_appearance
 from ObjectFactory import ObjectFactory
 
 

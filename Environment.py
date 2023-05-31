@@ -31,22 +31,21 @@ class EnvironmentNet(nn.Module):
         self.layers_num = layers_num
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    def forward(self, x, reinitialize):  # x: environment without the agent channel
+    def forward(self, x):  # x: environment without the agent channel
         batch_size = x.shape[0]
         episode_len = x.shape[1]
         env_over_episode = []
         for step in range(episode_len):
             y = self.conv1(x[:, step, :, :, :]).squeeze()
+            if y.dim() == 1:  # 1 batch
+                y = y.unsqueeze(dim=0)
             env_over_episode.append(F.relu(y))
         env_over_episode = torch.stack(env_over_episode, dim=1)
-        if env_over_episode.dim() < 3:
-            env_over_episode.unsqueeze(dim=0)
 
-        if reinitialize:
-            self.h_0 = torch.zeros((self.layers_num, batch_size, self.hidden_size),
-                                   requires_grad=True, device=self.device)
-            self.c_0 = torch.zeros((self.layers_num, batch_size, self.hidden_size),
-                                   requires_grad=True, device=self.device)
+        self.h_0 = torch.zeros((self.layers_num, batch_size, self.hidden_size),
+                               requires_grad=True, device=self.device)
+        self.c_0 = torch.zeros((self.layers_num, batch_size, self.hidden_size),
+                               requires_grad=True, device=self.device)
 
         env_belief, (h_n, c_n) = self.lstm(env_over_episode, (self.h_0, self.c_0))
 
