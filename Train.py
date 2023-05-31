@@ -40,7 +40,6 @@ def train(train_data_generator, validation_data_generator):
         goal_criterion = nn.CrossEntropyLoss(reduction='mean', weight=torch.tensor([4.5, 4.5, 1]).to(device))
         action_criterion = nn.NLLLoss(reduction='mean')
         for train_idx, data in enumerate(train_data_generator):
-            continue
             # environment_batch.shape: [batch_size, step_num, objects+agent(s), height, width]
             # target_goal: 2 is staying
             environments_batch, \
