@@ -139,4 +139,4 @@ def train(train_data_generator, validation_data_generator):
     writer.flush()
     if not os.path.exists('./Model'):
         os.mkdir('./Model')
-    torch.save(tom_net.cpu().state_dict(), './Model/ToM_RNN.pt')
+    torch.save(tom_net.cpu().state_dict(), './Model/ToM_RNN_V2.pt')
