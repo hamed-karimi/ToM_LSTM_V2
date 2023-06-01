@@ -51,30 +51,29 @@ def test(test_data_generator):
     for test_idx, data in enumerate(test_data_generator):
         # environment_batch.shape: [batch_size, step_num, objects+agent(s), height, width]
         # target_goal: 2 is staying
-        environments_batch, goals_batch, actions_batch, needs_batch, reached_goal_batch, _, _ = data
+        environments_batch, \
+            goals_batch, \
+            actions_batch, \
+            needs_batch, \
+            reached_goal_batch, _ = data
 
-        environments_batch = environments_batch.to(device)
-        goals_batch = goals_batch.to(device)
-        actions_batch = actions_batch.to(device)
-        needs_batch = needs_batch.to(device)
-        reached_goal_batch = reached_goal_batch.to(device)
-
+        # environments_batch = environments_batch.to(device)
+        # goals_batch = goals_batch.to(device)
+        # actions_batch = actions_batch.to(device)
+        # needs_batch = needs_batch.to(device)
+        # reached_goal_batch = reached_goal_batch.to(device)
+        goals_prob, actions_prob, action_prob_of_true_goals = tom_net(environments_batch,
+                                                                      inject_true_goals=False,
+                                                                      goals=None)
         step_num = environments_batch.shape[1]
-
-        seq_start = True
-
         for step in range(step_num):
-            goals, goals_prob, actions, actions_prob = tom_net(environments_batch[:, step, :, :, :].unsqueeze(dim=1),
-                                                               seq_start)
-            seq_start = False
-
             true_goals.append(goals_batch[:, step])
             true_actions.append(actions_batch[:, step])
             true_needs.append(needs_batch[:, step, :])
             env_input.append(environments_batch[:, step, :, :, :])
 
-            pred_goals.append(goals_prob)
-            pred_actions.append(actions_prob)
+            pred_goals.append(goals_prob[:, step, :])
+            pred_actions.append(actions_prob[:, step, :])
 
             if (global_index + 1) % grids_in_fig == 0:
                 fig, ax = visualizer(height, width, env_input, true_goals,
@@ -89,7 +88,7 @@ def test(test_data_generator):
             if goal_reached_in_last_step:
                 distance_to_objects = get_collection_distances(environments_batch[:, step, 0, :, :].squeeze(),
                                                                environments_batch[:, step, 1:, :, :].squeeze())
-                pred_goal_index = torch.argmax(goals_prob.squeeze()).item()
+                pred_goal_index = torch.argmax(goals_prob[:, step, :].squeeze()).item()
                 true_goal_index = goals_batch[:, step]
                 pred_goal_is_object.append(pred_goal_index < params.GOAL_NUM)  # selected goal is an object and not staying
                 goal_is_object.append(true_goal_index.item() < params.GOAL_NUM)

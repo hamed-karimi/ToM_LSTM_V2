@@ -1,6 +1,7 @@
 import json
 from types import SimpleNamespace
 
+
 class Utilities:
     def __init__(self, ):
         self.res_folder = None
