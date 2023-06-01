@@ -14,7 +14,7 @@
     "ENVIRONMENT_CONV1_OUT_CHANNEL": 16,
     "AGENT_STATES_NUM": 8,
     "DISCOUNT_FACTOR": 0.85,
-    "TRAINING_PHASE": true,
+    "TRAINING_PHASE": false,
     "TESTING_PHASE": true,
     "TRAIN_LOW_LEVEL": true,
     "DATA_DIRECTORY": "./Data"

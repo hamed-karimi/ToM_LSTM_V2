@@ -10,7 +10,7 @@ from ObjectFactory import ObjectFactory
 
 def load_tom_net(factory, utility):
     tom_net = factory.get_tom_net()
-    weights = torch.load('./Model/ToM_RNN.pt')
+    weights = torch.load('./Model/ToM_RNN_V2.pt')
     tom_net.load_state_dict(weights)
     return tom_net
 
