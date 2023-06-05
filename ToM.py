@@ -46,7 +46,9 @@ class ToMNet(nn.Module):
             goal_seq.append(step_goal)
             goal_prob_seq.append(self.softmax(step_goal))
 
-            step_action = self.action_net(F.relu(step_goal), F.relu(env_repr[:, step, :]))
+            step_action = self.action_net(F.relu(step_goal),
+                                          F.relu(env_repr[:, step, :]),
+                                          F.relu(agent_repr[:, step, :]))
             action_seq.append(step_action)
             action_prob_seq.append(self.softmax(step_action))
 
@@ -61,7 +63,9 @@ class ToMNet(nn.Module):
             action_seq_of_true_goals, actions_prob_seq_of_true_goals = [], []
             for step in range(episode_len):
                 step_goal = goals[:, step, :]
-                step_action = self.action_net(F.relu(step_goal), F.relu(env_repr[:, step, :]))
+                step_action = self.action_net(F.relu(step_goal),
+                                              F.relu(env_repr[:, step, :]),
+                                              F.relu(agent_repr[:, step, :]))
                 action_seq_of_true_goals.append(step_action)
                 actions_prob_seq_of_true_goals.append(self.softmax(step_action))
 

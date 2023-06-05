@@ -9,8 +9,8 @@ class ActionNet(nn.Module):
         self.fc1 = nn.Linear(states_size, 12)  # +1 for staying
         self.fc2 = nn.Linear(12, 9)
 
-    def forward(self, goals, environment):
-        x = torch.concat([goals, environment], dim=1)
+    def forward(self, goals, environment_only, agent_only):
+        x = torch.concat([goals, environment_only, agent_only], dim=1)
         x = self.fc1(x)
         actions = self.fc2(F.relu(x))
         return actions

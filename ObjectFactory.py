@@ -67,7 +67,9 @@ class ObjectFactory:
         return self.goal_net
 
     def get_action_net(self):
-        self.action_net = ActionNet(states_size=self.params.ENVIRONMENT_LSTM_STATES_NUM + self.params.GOAL_NUM + 1)
+        self.action_net = ActionNet(states_size=self.params.ENVIRONMENT_LSTM_STATES_NUM
+                                                + self.params.GOAL_NUM + 1
+                                                + self.params.AGENT_STATES_NUM)
         self.action_net.apply(weights_init_orthogonal)
         return self.action_net
 
