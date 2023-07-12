@@ -16,12 +16,12 @@ class ToMNet(nn.Module):
         # self.mental_states = None
         self.utility = Utilities.Utilities()
         self.params = self.utility.params
-        factory = ObjectFactory.ObjectFactory(utility=self.utility)
-        self.environment_net = factory.get_environment_net()
-        self.agent_net = factory.get_agent_net()
-        self.mental_net = factory.get_mental_net()
-        self.goal_net = factory.get_goal_net()
-        self.action_net = factory.get_action_net()
+        self.factory = ObjectFactory.ObjectFactory(utility=self.utility)
+        self.environment_net = self.factory.get_environment_net()
+        self.agent_net = self.factory.get_agent_net()
+        self.mental_net = self.factory.get_mental_net()
+        self.goal_net = self.factory.get_goal_net()
+        self.action_net = self.factory.get_action_net()
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, environment: torch.Tensor,
@@ -62,8 +62,8 @@ class ToMNet(nn.Module):
         if inject_true_goals:
             action_seq_of_true_goals, actions_prob_seq_of_true_goals = [], []
             for step in range(episode_len):
-                step_goal = torch.zeros(goals.shape[0],
-                                        self.params.GOAL_TYPE_NUM+1)
+                step_goal = self.factory.zeros((goals.shape[0],
+                                                self.params.GOAL_TYPE_NUM+1))
 
                 step_goal.index_put_((torch.arange(goals.shape[0]).long(), goals[:, step].long()),
                                      torch.ones(goals[:, step].shape))

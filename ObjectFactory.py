@@ -78,3 +78,6 @@ class ObjectFactory:
         self.tom_net = ToMNet().to(self.device)
         self.tom_net.apply(weights_init_orthogonal)
         return self.tom_net
+
+    def zeros(self, shape, dtype=None):
+        return torch.zeros(shape, dtype=dtype, device=self.device)
