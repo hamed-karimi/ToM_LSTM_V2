@@ -42,8 +42,6 @@ def train(train_data_generator, validation_data_generator):
         for train_idx, data in enumerate(train_data_generator):
             # environment_batch.shape: [batch_size, step_num, objects+agent(s), height, width]
             # target_goal: 2 is staying
-            # tensor([1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2],
-            #        dtype=torch.int32)
             environments_batch, \
                 goals_batch, \
                 actions_batch, \

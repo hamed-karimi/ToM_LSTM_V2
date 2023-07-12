@@ -16,6 +16,5 @@
     "DISCOUNT_FACTOR": 0.85,
     "TRAINING_PHASE": true,
     "TESTING_PHASE": true,
-    "TRAIN_LOW_LEVEL": true,
     "DATA_DIRECTORY": "./Data"
 }

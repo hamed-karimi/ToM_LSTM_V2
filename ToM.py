@@ -65,7 +65,7 @@ class ToMNet(nn.Module):
                 step_goal = torch.zeros(goals.shape[0],
                                         self.params.GOAL_TYPE_NUM+1)
 
-                step_goal.index_put_((torch.arange(goals.shape[0]), goals[:, step]),
+                step_goal.index_put_((torch.arange(goals.shape[0]).long(), goals[:, step].long()),
                                      torch.ones(goals[:, step].shape))
                 step_action = self.action_net(F.relu(step_goal),
                                               F.relu(env_repr[:, step, :]),
