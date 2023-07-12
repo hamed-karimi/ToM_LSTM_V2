@@ -34,7 +34,8 @@ class ObjectFactory:
         self.params = utility.params
 
     def get_environment_net(self):
-        self.environment_net = EnvironmentNet(goal_num=self.params.GOAL_NUM,
+        self.environment_net = EnvironmentNet(height=self.params.HEIGHT,
+                                              goal_num=self.params.GOAL_TYPE_NUM,
                                               env_conv_channel_size=self.params.ENVIRONMENT_CONV1_OUT_CHANNEL,
                                               states_num=self.params.ENVIRONMENT_LSTM_STATES_NUM,
                                               layers_num=self.params.ENVIRONMENT_LSTM_LAYERS_NUM).to(self.device)
@@ -62,13 +63,13 @@ class ObjectFactory:
 
     def get_goal_net(self):
         self.goal_net = GoalNet(states_size=self.params.MENTAL_LSTM_STATES_NUM,
-                                goal_num=self.params.GOAL_NUM).to(self.device)
+                                goal_num=self.params.GOAL_TYPE_NUM).to(self.device)
         self.goal_net.apply(weights_init_orthogonal)
         return self.goal_net
 
     def get_action_net(self):
         self.action_net = ActionNet(states_size=self.params.ENVIRONMENT_LSTM_STATES_NUM
-                                                + self.params.GOAL_NUM + 1
+                                                + self.params.GOAL_TYPE_NUM + 1
                                                 + self.params.AGENT_STATES_NUM)
         self.action_net.apply(weights_init_orthogonal)
         return self.action_net

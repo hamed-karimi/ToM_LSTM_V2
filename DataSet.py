@@ -47,7 +47,7 @@ class AgentActionDataSet(Dataset):
         def recursive_fill(at_episode, i, observed):
             if i < 0:
                 return
-            if retrospective_target_goals[at_episode, i, self.params.GOAL_NUM]:
+            if retrospective_target_goals[at_episode, i, self.params.GOAL_TYPE_NUM]:
                 return
             if self.reached_goal[at_episode, i]:
                 return
@@ -56,12 +56,12 @@ class AgentActionDataSet(Dataset):
 
         retrospective_target_goals = torch.zeros(self.target_goals.shape[0],
                                                  self.target_goals.shape[1],
-                                                 self.params.GOAL_NUM+1, dtype=torch.int32)
-        retrospective_target_goals[:, :, self.params.GOAL_NUM][self.target_goals == self.params.GOAL_NUM] = 1
+                                                 self.params.GOAL_TYPE_NUM+1, dtype=torch.int32)
+        retrospective_target_goals[:, :, self.params.GOAL_TYPE_NUM][self.target_goals == self.params.GOAL_TYPE_NUM] = 1
         for episode in range(self.reached_goal.shape[0]):
             reached = torch.argwhere(self.reached_goal[episode, :])
             for step in reached.__reversed__():
-                for object_type in range(self.params.GOAL_NUM):
+                for object_type in range(self.params.GOAL_TYPE_NUM):
                     if self.target_goals[episode, step.item()] == object_type:
                         retrospective_target_goals[episode, step, object_type] = 1
                         recursive_fill(episode, step.item()-1, observed=object_type)

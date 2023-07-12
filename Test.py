@@ -17,8 +17,11 @@ def load_tom_net(factory, utility):
 
 def get_collection_distances(map1, map2):
     p1 = torch.argwhere(map1)
-    p2 = torch.argwhere(map2)
-    return torch.cdist(p1.float(), p2[:, 1:].float())
+    p2_0 = torch.argwhere(map2[0, :, :])
+    p2_1 = torch.argwhere(map2[1, :, :])
+    type1_obj_distance = torch.cdist(p1.float(), p2_0.float())
+    type2_obj_distance = torch.cdist(p1.float(), p2_1.float())
+    return torch.tensor([[type1_obj_distance.min(), type2_obj_distance.min()]])
 
 
 def test(test_data_generator):
@@ -86,30 +89,31 @@ def test(test_data_generator):
 
             # Check if the goal object is the nearest one
             if goal_reached_in_last_step:
-                distance_to_objects = get_collection_distances(environments_batch[:, step, 0, :, :].squeeze(),
+                distance_to_nearest_objects = get_collection_distances(environments_batch[:, step, 0, :, :].squeeze(),
                                                                environments_batch[:, step, 1:, :, :].squeeze())
                 pred_goal_index = torch.argmax(goals_prob[:, step, :].squeeze()).item()
                 true_goal_index = goals_batch[:, step]
-                pred_goal_is_object.append(pred_goal_index < params.GOAL_NUM)  # selected goal is an object and not staying
-                goal_is_object.append(true_goal_index.item() < params.GOAL_NUM)
+                pred_goal_is_object.append(pred_goal_index < params.GOAL_TYPE_NUM)  # selected goal is an object and not staying
+                goal_is_object.append(true_goal_index.item() < params.GOAL_TYPE_NUM)
 
-                if not torch.all(distance_to_objects == distance_to_objects[0, 0].item(), dim=1):
+                # Distance from agent to objects are not equal
+                if not torch.all(distance_to_nearest_objects == distance_to_nearest_objects[0, 0].item(), dim=1):
                     non_equal_distance_to_objects.append(True)
                 else:
                     non_equal_distance_to_objects.append(False)
 
-                if torch.argmin(distance_to_objects) == pred_goal_index:  # This implies that the goal is an object
+                if torch.argmin(distance_to_nearest_objects) == pred_goal_index:  # This implies that the goal is an object
                     pred_goal_is_nearest_object.append(True)
                 else:
                     pred_goal_is_nearest_object.append(False)
 
-                if torch.argmin(distance_to_objects) == true_goal_index:
+                if torch.argmin(distance_to_nearest_objects) == true_goal_index:
                     goal_is_nearest_object.append(True)
                 else:
                     goal_is_nearest_object.append(False)
             ###
             global_index += 1
-            if goal_reached_in_last_step and goals_batch[0, step].item() == params.GOAL_NUM:
+            if goal_reached_in_last_step and goals_batch[0, step].item() == params.GOAL_TYPE_NUM:
                 goal_reached_in_last_step = True
             else:
                 goal_reached_in_last_step = reached_goal_batch[0, step].item()

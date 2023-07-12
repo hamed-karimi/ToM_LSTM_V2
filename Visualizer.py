@@ -34,8 +34,10 @@ def visualizer(fig_height, fig_width, env_input, true_goals, true_actions, true_
                                      marker='$\U0001F601$', s=40, facecolor='#8A2BE2')
 
         for obj in range(object_locations.shape[0]):
-            ax[fig_row, fig_col].scatter(object_locations[obj, 2].item(), object_locations[obj, 1].item(),
-                                         marker='*', s=40, facecolor=color_options[obj])
+            object_type = object_locations[obj, 0]
+            location = object_locations[obj, 1:]
+            ax[fig_row, fig_col].scatter(location[1].item(), location[0].item(),
+                                         marker='*', s=40, facecolor=color_options[object_type])
 
         def get_scale(action):
             if action in [1, 2]:  # up or down

@@ -37,11 +37,13 @@ def train(train_data_generator, validation_data_generator):
         n_validation_batch = 0
         seq_start = True
         # goal_criterion = nn.NLLLoss(reduction='mean', weight=torch.tensor([4.5, 4.5, 1]).to(device))
-        goal_criterion = nn.CrossEntropyLoss(reduction='mean', weight=torch.tensor([4.5, 4.5, 1]).to(device))
+        goal_criterion = nn.NLLLoss(reduction='mean')  # , weight=torch.tensor([4.5, 4.5, 1]).to(device))
         action_criterion = nn.NLLLoss(reduction='mean')
         for train_idx, data in enumerate(train_data_generator):
             # environment_batch.shape: [batch_size, step_num, objects+agent(s), height, width]
             # target_goal: 2 is staying
+            # tensor([1, 1, 1, 1, 2, 2, 2, 2, 2, 1, 1, 1, 0, 0, 0, 0, 2, 2, 2, 2],
+            #        dtype=torch.int32)
             environments_batch, \
                 goals_batch, \
                 actions_batch, \
@@ -54,31 +56,37 @@ def train(train_data_generator, validation_data_generator):
                                  action_grad=True,
                                  mental_grad=True,
                                  agent_grad=True)
-
             optimizer.zero_grad()
 
             goals_prob, actions_prob, action_prob_of_true_goals = tom_net(environments_batch,
                                                                           inject_true_goals=True,
-                                                                          goals=retrospective_goals_batch)
+                                                                          goals=goals_batch)
             # 2 losses:
             # 1. goal loss
             # 2. all actions losses
             # 3. retrospective goal losses
 
             # goal loss
-            change_require_grads(tom_net, goal_grad=True, action_grad=False)
-            stayed_batch = torch.zeros(goals_batch.shape).to(device)
-            stayed_batch[goals_batch == params.GOAL_NUM] = 1
-            reached_or_stayed_batch = torch.logical_or(goal_reached_batch, stayed_batch)
+            change_require_grads(tom_net,
+                                 goal_grad=True,
+                                 action_grad=False)
+            # stayed_batch = torch.zeros(goals_batch.shape).to(device)
+            # stayed_batch[goals_batch == params.GOAL_TYPE_NUM] = 1
+            # reached_or_stayed_batch = torch.logical_or(goal_reached_batch, stayed_batch)
 
-            goal_loss = goal_criterion(goals_prob[reached_or_stayed_batch, :],
-                                       goals_batch[reached_or_stayed_batch].long())
+            # Using reshape is not correct, bc the order of classes would be distorted
+            goal_loss = goal_criterion(torch.stack([goals_prob[:, :, i] for i in range(goals_prob.shape[2])], dim=1),
+                                       goals_batch.long())
             goal_loss.backward(retain_graph=True)
 
             # all actions loss
-            change_require_grads(tom_net, goal_grad=True, action_grad=True)
-            action_loss = action_criterion(actions_prob.reshape(actions_prob.shape[0], 9, -1),
-                                           actions_batch.long())
+            change_require_grads(tom_net,
+                                 goal_grad=True,
+                                 action_grad=True)
+
+            action_loss = action_criterion(
+                torch.stack([actions_prob[:, :, i] for i in range(actions_prob.shape[2])], dim=1),
+                actions_batch.long())
             action_loss.backward(retain_graph=True)
 
             # Inject true goals to the action net, and compute derivative
@@ -90,7 +98,7 @@ def train(train_data_generator, validation_data_generator):
                                  agent_grad=False)
 
             action_true_goal_loss = action_criterion(
-                action_prob_of_true_goals.reshape(action_prob_of_true_goals.shape[0], 9, -1),
+                torch.stack([action_prob_of_true_goals[:, :, i] for i in range(action_prob_of_true_goals.shape[2])], dim=1),
                 actions_batch.long())
             action_true_goal_loss.backward()
 
@@ -133,7 +141,8 @@ def train(train_data_generator, validation_data_generator):
         writer.add_scalar("Train Loss/goal", epoch_goal_loss / n_train_batch, epoch)
         writer.add_scalar("Train Loss/all_action", epoch_all_actions_loss / n_train_batch, epoch)
         writer.add_scalar("Validation Accuracy/goal", validation_goal_prediction_accuracy / n_validation_batch, epoch)
-        writer.add_scalar("Validation Accuracy/action", validation_action_prediction_accuracy / n_validation_batch, epoch)
+        writer.add_scalar("Validation Accuracy/action", validation_action_prediction_accuracy / n_validation_batch,
+                          epoch)
 
     writer.flush()
     if not os.path.exists('./Model'):
