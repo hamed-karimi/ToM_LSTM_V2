@@ -81,3 +81,6 @@ class ObjectFactory:
 
     def zeros(self, shape, dtype=None):
         return torch.zeros(shape, dtype=dtype, device=self.device)
+
+    def ones(self, shape, dtype=None):
+        return torch.ones(shape, dtype=dtype, device=self.device)

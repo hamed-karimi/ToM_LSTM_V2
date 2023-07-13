@@ -62,11 +62,14 @@ class ToMNet(nn.Module):
         if inject_true_goals:
             action_seq_of_true_goals, actions_prob_seq_of_true_goals = [], []
             for step in range(episode_len):
-                step_goal = self.factory.zeros((goals.shape[0],
-                                                self.params.GOAL_TYPE_NUM+1))
+                step_goal = torch.zeros(goals.shape[0], self.params.GOAL_TYPE_NUM+1,
+                                        dtype=torch.float,
+                                        device=goals.device)
 
-                step_goal.index_put_((torch.arange(goals.shape[0]).long(), goals[:, step].long()),
-                                     torch.ones(goals[:, step].shape))
+                step_goal.index_put_((torch.arange(goals.shape[0], device=goals.device),
+                                      goals[:, step].long()),
+                                     torch.ones(goals[:, step].shape, device=goals.device))
+
                 step_action = self.action_net(F.relu(step_goal),
                                               F.relu(env_repr[:, step, :]),
                                               F.relu(agent_repr[:, step, :]))
