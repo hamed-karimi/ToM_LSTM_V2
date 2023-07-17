@@ -39,7 +39,8 @@ class ToMNet(nn.Module):
         goal_seq, goal_prob_seq = [], []
         action_seq, action_prob_seq = [], []
 
-        mental_states, _ = self.mental_net(env_repr, agent_repr)
+        mental_states, _ = self.mental_net(F.relu(env_repr),
+                                           F.relu(agent_repr))
 
         for step in range(episode_len):
             step_goal = self.goal_net(F.relu(mental_states[:, step, :]))
@@ -73,7 +74,6 @@ class ToMNet(nn.Module):
                 step_action = self.action_net(F.relu(step_goal),
                                               F.relu(env_repr[:, step, :]),
                                               F.relu(agent_repr[:, step, :]))
-                # action_seq_of_true_goals.append(step_action)
                 actions_prob_seq_of_true_goals.append(self.softmax(step_action))
 
             actions_prob_of_true_goals = torch.stack(actions_prob_seq_of_true_goals, dim=1)

@@ -43,7 +43,8 @@ class ObjectFactory:
         return self.environment_net
 
     def get_agent_net(self):
-        self.agent = AgentNet(states_num=self.params.AGENT_STATES_NUM).to(self.device)
+        self.agent = AgentNet(height=self.params.HEIGHT,
+                              states_num=self.params.AGENT_STATES_NUM).to(self.device)
         self.agent.apply(weights_init_orthogonal)
         return self.agent
 

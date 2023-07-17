@@ -25,17 +25,16 @@ def train(train_data_generator, validation_data_generator):
     factory = ObjectFactory(utility=utility)
     tom_net = factory.get_tom_net()
     optimizer = torch.optim.Adam(tom_net.parameters(),
-                                 lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
+                                 lr=0.001, betas=(0.9, 0.999),
+                                 eps=1e-08, weight_decay=0)
 
     global_index = 0
 
     for epoch in range(params.NUM_EPOCHS):
         epoch_goal_loss = 0
         epoch_all_actions_loss = 0
-        epoch_action_prediction_performance = 0
         n_train_batch = 0
         n_validation_batch = 0
-        seq_start = True
         # goal_criterion = nn.NLLLoss(reduction='mean', weight=torch.tensor([4.5, 4.5, 1]).to(device))
         goal_criterion = nn.NLLLoss(reduction='mean')  # , weight=torch.tensor([4.5, 4.5, 1]).to(device))
         action_criterion = nn.NLLLoss(reduction='mean')
@@ -68,9 +67,6 @@ def train(train_data_generator, validation_data_generator):
             change_require_grads(tom_net,
                                  goal_grad=True,
                                  action_grad=False)
-            # stayed_batch = torch.zeros(goals_batch.shape).to(device)
-            # stayed_batch[goals_batch == params.GOAL_TYPE_NUM] = 1
-            # reached_or_stayed_batch = torch.logical_or(goal_reached_batch, stayed_batch)
 
             # Using reshape is not correct, bc the order of classes would be distorted
             goal_loss = goal_criterion(torch.stack([goals_prob[:, :, i] for i in range(goals_prob.shape[2])], dim=1),
@@ -93,7 +89,7 @@ def train(train_data_generator, validation_data_generator):
                                  goal_grad=False,
                                  action_grad=True,
                                  mental_grad=False,
-                                 agent_grad=False)
+                                 agent_grad=True)
 
             action_true_goal_loss = action_criterion(
                 torch.stack([action_prob_of_true_goals[:, :, i] for i in range(action_prob_of_true_goals.shape[2])], dim=1),
@@ -104,9 +100,6 @@ def train(train_data_generator, validation_data_generator):
 
             epoch_all_actions_loss += action_loss.item()
             epoch_goal_loss += goal_loss.item()
-            # epoch_action_prediction_performance += torch.eq(actions_batch,
-            #                                                 torch.argmax(actions_prob, dim=2)).sum().item() / \
-            #                                        (actions_batch.shape[0] * actions_batch.shape[1])
 
             n_train_batch += 1
             print('epoch: ', epoch, ', batch: ', train_idx)
