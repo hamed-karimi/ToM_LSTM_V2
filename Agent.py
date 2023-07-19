@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -16,11 +17,9 @@ class AgentNet(nn.Module):
         self.fc1 = nn.Linear(32, states_num)
 
     def forward(self, x):
-        x = self.conv1(x).squeeze()
+        x = self.conv1(x)
         x = self.conv2(F.relu(x))
-        if x.dim() == 1:  # 1 batch
-            x = x.unsqueeze(dim=0)
-        x = x.squeeze()
+        x = torch.flatten(x, start_dim=1)
         agent_repr = self.fc1(F.relu(x))
 
         return agent_repr
