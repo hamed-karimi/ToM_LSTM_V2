@@ -15,7 +15,8 @@ class AgentActionDataSet(Dataset):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.utility = Utilities.Utilities()
         self.params = self.utility.params
-        self.dir_path = self.params.DATA_DIRECTORY
+        self.agent_type = self.params.AGENT_TYPE
+        self.dir_path = os.path.join(self.params.DATA_DIRECTORY, self.agent_type)
         self.environments = torch.load(join(self.dir_path, 'environments.pt'))
         self.target_goals = torch.load(join(self.dir_path, 'selected_goals.pt'))
         self.target_actions = torch.load(join(self.dir_path, 'actions.pt'))

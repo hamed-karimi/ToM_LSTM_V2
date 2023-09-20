@@ -134,8 +134,8 @@ def train(train_data_generator, validation_data_generator):
         writer.add_scalar("Validation Accuracy/goal", validation_goal_prediction_accuracy / n_validation_batch, epoch)
         writer.add_scalar("Validation Accuracy/action", validation_action_prediction_accuracy / n_validation_batch,
                           epoch)
-
     writer.flush()
-    if not os.path.exists('./Model'):
-        os.mkdir('./Model')
-    torch.save(tom_net.cpu().state_dict(), './Model/ToM_RNN_V2.pt')
+    res_dir = os.path.join('./Model', params.AGENT_TYPE)
+    if not os.path.exists(res_dir):
+        os.mkdir(res_dir)
+    torch.save(tom_net.state_dict(), os.path.join(res_dir, 'ToM_RNN_V2.pt'))

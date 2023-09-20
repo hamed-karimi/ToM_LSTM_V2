@@ -53,10 +53,7 @@ class ToMNet(nn.Module):
             action_seq.append(step_action)
             action_prob_seq.append(self.softmax(step_action))
 
-        # goals = torch.stack(goal_seq, dim=1)
         goals_prob = torch.stack(goal_prob_seq, dim=1)
-
-        # actions = torch.stack(action_seq, dim=1)
         actions_prob = torch.stack(action_prob_seq, dim=1)
 
         actions_prob_of_true_goals = None
