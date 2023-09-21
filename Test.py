@@ -29,9 +29,9 @@ def test(test_data_generator):
     utility = Utilities.Utilities()
     params = utility.params
     writer = SummaryWriter()
-    test_figures_dir = './Test/'
+    test_figures_dir = os.path.join('./Test/', params.AGENT_TYPE)
     if not os.path.exists(test_figures_dir):
-        os.mkdir(test_figures_dir)
+        os.makedirs(test_figures_dir)
 
     # agent_appearance = torch.tensor(get_agent_appearance(),
     #                                 dtype=torch.float32)  # add one dimension for batch
