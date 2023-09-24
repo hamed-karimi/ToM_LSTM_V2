@@ -9,8 +9,9 @@ from ObjectFactory import ObjectFactory
 
 
 def load_tom_net(factory, utility):
+    params = utility.params
     tom_net = factory.get_tom_net()
-    weights = torch.load('./Model/ToM_RNN_V2.pt')
+    weights = torch.load(os.path.join('./Model/', params.AGENT_TYPE, 'ToM_RNN_V2.pt'))
     tom_net.load_state_dict(weights)
     return tom_net
 
@@ -28,7 +29,7 @@ def test(test_data_generator):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     utility = Utilities.Utilities()
     params = utility.params
-    writer = SummaryWriter()
+    # writer = SummaryWriter()
     test_figures_dir = os.path.join('./Test/', params.AGENT_TYPE)
     if not os.path.exists(test_figures_dir):
         os.makedirs(test_figures_dir)
@@ -189,4 +190,4 @@ def test(test_data_generator):
                    2, 1, 'Predicted goal object in \nnon-equal distance situation')
 
     plt.tight_layout(h_pad=2., w_pad=4.)
-    fig.savefig('{0}/stats.png'.format(test_figures_dir))
+    fig.savefig('{0}/{1}/stats.png'.format(test_figures_dir))

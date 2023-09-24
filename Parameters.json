@@ -4,7 +4,7 @@
     "AGENT_TYPE": "Regular",
     "TRAIN_PROPORTION": 0.98,
     "VALIDATION_PROPORTION": 0.0196,
-    "NUM_EPOCHS": 100,
+    "NUM_EPOCHS": 1,
     "BATCH_SIZE": 64,
     "GOAL_TYPE_NUM": 2,
     "AGENT_SIZE": 4,
