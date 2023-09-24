@@ -17,9 +17,9 @@ def change_require_grads(model, goal_grad, action_grad, mental_grad=True, agent_
         params.requires_grad = agent_grad
 
 
-def train(train_data_generator, validation_data_generator):
+def train(train_data_generator, validation_data_generator, utility):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    utility = Utilities.Utilities()
+    # utility = Utilities.Utilities()
     params = utility.params
     res_dir = os.path.join('./Model', params.AGENT_TYPE)
     if not os.path.exists(res_dir):

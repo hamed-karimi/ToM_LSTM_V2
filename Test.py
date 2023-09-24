@@ -25,9 +25,9 @@ def get_collection_distances(map1, map2):
     return torch.tensor([[type1_obj_distance.min(), type2_obj_distance.min()]])
 
 
-def test(test_data_generator):
+def test(test_data_generator, utility):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    utility = Utilities.Utilities()
+    # utility = Utilities.Utilities()
     params = utility.params
     # writer = SummaryWriter()
     test_figures_dir = os.path.join('./Test/', params.AGENT_TYPE)
