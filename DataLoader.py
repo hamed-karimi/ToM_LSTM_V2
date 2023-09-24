@@ -15,7 +15,7 @@ def get_data_loader(utility):
         generator = DataLoader(dataset, **params)
         return generator
 
-    dataset = AgentActionDataSet()
+    dataset = AgentActionDataSet(utility)
     train_batch_size = utility.params.BATCH_SIZE
     train_range = np.arange(int(utility.params.TRAIN_PROPORTION * len(dataset)))
     validation_range = np.arange(int(utility.params.TRAIN_PROPORTION * len(dataset)),

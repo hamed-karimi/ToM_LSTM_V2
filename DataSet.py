@@ -11,9 +11,9 @@ import Utilities
 
 
 class AgentActionDataSet(Dataset):
-    def __init__(self):
+    def __init__(self, utility):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.utility = Utilities.Utilities()
+        self.utility = utility
         self.params = self.utility.params
         self.agent_type = self.params.AGENT_TYPE
         self.dir_path = os.path.join(self.params.DATA_DIRECTORY, self.agent_type)
