@@ -11,10 +11,10 @@ from Goal import GoalNet
 
 class ToMNet(nn.Module):
     # this is meant to operate as the meta-controller
-    def __init__(self):
+    def __init__(self, utility):
         super(ToMNet, self).__init__()
         # self.mental_states = None
-        self.utility = Utilities.Utilities()
+        self.utility = utility
         self.params = self.utility.params
         self.factory = ObjectFactory.ObjectFactory(utility=self.utility)
         self.environment_net = self.factory.get_environment_net()

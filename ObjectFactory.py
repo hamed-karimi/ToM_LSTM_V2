@@ -75,8 +75,8 @@ class ObjectFactory:
         self.action_net.apply(weights_init_orthogonal)
         return self.action_net
 
-    def get_tom_net(self):
-        self.tom_net = ToMNet().to(self.device)
+    def get_tom_net(self, utility):
+        self.tom_net = ToMNet(utility).to(self.device)
         self.tom_net.apply(weights_init_orthogonal)
         return self.tom_net
 

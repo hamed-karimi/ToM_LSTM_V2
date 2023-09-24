@@ -27,7 +27,7 @@ def train(train_data_generator, validation_data_generator, utility):
 
     writer = SummaryWriter()
     factory = ObjectFactory(utility=utility)
-    tom_net = factory.get_tom_net()
+    tom_net = factory.get_tom_net(utility)
     optimizer = torch.optim.Adam(tom_net.parameters(),
                                  lr=0.001, betas=(0.9, 0.999),
                                  eps=1e-08, weight_decay=0)
