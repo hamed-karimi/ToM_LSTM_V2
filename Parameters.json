@@ -1,7 +1,7 @@
 {
     "HEIGHT" : 8,
     "WIDTH" : 8,
-    "AGENT_TYPE": "NearestObject",
+    "AGENT_TYPE": "Regular",
     "TRAIN_PROPORTION": 0.98,
     "VALIDATION_PROPORTION": 0.0196,
     "NUM_EPOCHS": 100,
