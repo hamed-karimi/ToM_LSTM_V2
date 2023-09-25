@@ -17,5 +17,6 @@
     "DISCOUNT_FACTOR": 0.85,
     "TRAINING_PHASE": true,
     "TESTING_PHASE": true,
-    "DATA_DIRECTORY": "./Data"
+    "DATA_DIRECTORY": "./Data",
+    "MODEL_DIRECTORY": "./Model"
 }

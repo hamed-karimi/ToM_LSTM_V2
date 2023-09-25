@@ -11,7 +11,7 @@ from ObjectFactory import ObjectFactory
 def load_tom_net(factory, utility):
     params = utility.params
     tom_net = factory.get_tom_net(utility)
-    weights = torch.load(os.path.join('./Model/', params.AGENT_TYPE, 'ToM_RNN_V2.pt'))
+    weights = torch.load(os.path.join(params.MODEL_DIRECTORY, params.AGENT_TYPE, 'ToM_RNN_V2.pt'))
     tom_net.load_state_dict(weights)
     return tom_net
 
@@ -190,4 +190,4 @@ def test(test_data_generator, utility):
                    2, 1, 'Predicted goal object in \nnon-equal distance situation')
 
     plt.tight_layout(h_pad=2., w_pad=4.)
-    fig.savefig('{0}/{1}/stats.png'.format(test_figures_dir))
+    fig.savefig('{0}/{1}/stats.png'.format(test_figures_dir, params.AGENT_TYPE))
